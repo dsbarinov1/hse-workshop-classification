@@ -1,0 +1,1 @@
+{"precision_catboost": 0.6968325791855203, "recall_catboost": 0.4888888888888889, "f1_catboost": 0.5746268656716417, "roc_auc_catboost": 0.7233087977567473, "precision_sklearn": 0.6997518610421837, "recall_sklearn": 0.44761904761904764, "f1_sklearn": 0.5459825750242013, "roc_auc_sklearn": 0.7047243503079464}

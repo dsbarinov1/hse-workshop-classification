@@ -1,0 +1,66 @@
+stages:
+  preprocess:
+    cmd: python src/data/make_dataset.py data/raw/train.csv data/interim/train.pkl data/interim/train_target.pkl data/interim/val.pkl data/interim/val_target.pkl;
+      python src/data/make_dataset.py data/raw/test.csv data/interim/test.pkl _ _ _
+    deps:
+    - data/raw/train.csv
+    - data/raw/test.csv
+    - src/data/make_dataset.py
+    - src/data/preprocess.py
+    outs:
+    - data/interim/test.pkl
+    - data/interim/train.pkl
+    - data/interim/train_target.pkl
+    - data/interim/val.pkl
+    - data/interim/val_target.pkl
+
+  build_train_features:
+    cmd: python src/features/build_features.py data/interim/train.pkl data/processed/train.pkl;
+      python src/features/build_features.py data/interim/val.pkl data/processed/val.pkl;
+      python src/features/build_features.py data/interim/test.pkl data/processed/test.pkl
+    deps:
+    - data/interim/train.pkl
+    - data/interim/val.pkl
+    - data/interim/test.pkl
+    - src/features/build_features.py
+    - src/features/features.py
+    outs:
+    - data/processed/train.pkl
+    - data/processed/val.pkl
+    - data/processed/test.pkl
+
+  train_models:
+    cmd: python src/models/train_model.py data/processed/train.pkl data/interim/train_target.pkl
+      models
+    deps:
+    - data/interim/train_target.pkl
+    - data/processed/train.pkl
+    - src/models/train_model.py
+    outs:
+    - models
+
+  evaluate:
+    cmd: python src/models/evaluate.py models/catboost.pkl models/ridge.pkl data/processed/train.pkl data/interim/train_target.pkl reports/evaluate/train_evaluation.json;
+      python src/models/evaluate.py models/catboost.pkl models/ridge.pkl data/processed/val.pkl data/interim/val_target.pkl reports/evaluate/val_evaluation.json
+    deps:
+    - models/catboost.pkl
+    - models/ridge.pkl
+    - src/models/evaluate.py
+    - data/processed/train.pkl
+    - data/interim/train_target.pkl
+    - data/processed/val.pkl
+    - data/interim/val_target.pkl
+    metrics:
+    - reports/evaluate/train_evaluation.json:
+        cache: false
+    - reports/evaluate/val_evaluation.json:
+        cache: false
+
+  inference:
+    cmd: python src/models/predict_model.py data/processed/test.pkl models/catboost.pkl models/ridge.pkl reports/inference/
+    deps:
+    - models/catboost.pkl
+    - models/ridge.pkl
+    - data/processed/test.pkl
+    outs:
+    - reports/inference
